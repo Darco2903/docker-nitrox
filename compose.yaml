@@ -2,7 +2,7 @@ name: nitrox-template
 services:
   nitrox:
     build: .
-    image: nitrox
+    image: darco2903/nitrox:latest
     platform: linux/amd64
     container_name: nitrox
     # The Nitrox server reads console commands from stdin
