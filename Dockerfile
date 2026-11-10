@@ -3,6 +3,9 @@ FROM cm2network/steamcmd
 # "latest" or "tags/<version>" to pin a Nitrox release
 ARG NITROX_RELEASE=latest
 
+# This repo's scripts are MIT; the bundled Nitrox server is GPL-3.0
+LABEL org.opencontainers.image.licenses="MIT AND GPL-3.0-only"
+
 USER root
 # libicuNN's version suffix changes with the Debian release, so resolve it
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -16,13 +19,20 @@ COPY --from=mcr.microsoft.com/dotnet/runtime:9.0 /usr/share/dotnet /usr/share/do
 RUN ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
 
 RUN set -e; \
-    url=$(curl -fsSL "https://api.github.com/repos/SubnauticaNitrox/Nitrox/releases/${NITROX_RELEASE}" \
-    | grep -o '"browser_download_url": *"[^"]*linux_x64[^"]*"' | head -n1 | cut -d'"' -f4); \
+    release=$(curl -fsSL "https://api.github.com/repos/SubnauticaNitrox/Nitrox/releases/${NITROX_RELEASE}"); \
+    tag=$(echo "$release" | grep -o '"tag_name": *"[^"]*"' | head -n1 | cut -d'"' -f4); \
+    url=$(echo "$release" | grep -o '"browser_download_url": *"[^"]*linux_x64[^"]*"' | head -n1 | cut -d'"' -f4); \
     if [ -z "$url" ]; then echo "No linux_x64 asset found for release '${NITROX_RELEASE}'"; exit 1; fi; \
     echo "Downloading $url"; \
     curl -fsSL -o /tmp/nitrox.zip "$url"; \
     unzip -q /tmp/nitrox.zip -d /opt/nitrox; \
-    rm /tmp/nitrox.zip
+    rm /tmp/nitrox.zip; \
+    # Nitrox is GPL-3.0: ship its license and where to get the matching source
+    mkdir -p /usr/share/licenses/nitrox; \
+    curl -fsSL -o /usr/share/licenses/nitrox/LICENSE.txt \
+    "https://raw.githubusercontent.com/SubnauticaNitrox/Nitrox/${tag}/LICENSE.txt"; \
+    printf 'Nitrox %s\nLicense: GPL-3.0 (LICENSE.txt)\nSource: https://github.com/SubnauticaNitrox/Nitrox/tree/%s\n' \
+    "$tag" "$tag" > /usr/share/licenses/nitrox/SOURCE
 
 # Pre-create mount points so named volumes are owned by steam, not root
 RUN mkdir -p /data/subnautica /home/steam/Steam/config /home/steam/.config/Nitrox \

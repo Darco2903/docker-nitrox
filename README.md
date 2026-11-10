@@ -10,6 +10,20 @@ The Nitrox server needs Subnautica's game files. These are **not** in the image.
 - A Steam account that owns Subnautica (anonymous login can't download it)
 - An `amd64` host, or a host that can emulate it (see [ARM hosts](#arm-hosts))
 
+## Prebuilt image
+
+CI builds the image and publishes it to Docker Hub as [`darco2903/nitrox`](https://hub.docker.com/r/darco2903/nitrox) on every push to `main`. Tags:
+
+| Tag                   | Contents                                       |
+| --------------------- | ---------------------------------------------- |
+| `latest`              | Latest Nitrox release, built from `main`       |
+| `<nitrox version>`    | That Nitrox release, e.g. `1.8.1.0`            |
+| `sha-<commit>`        | Built from that commit of this repo            |
+
+To build an older Nitrox version, run the workflow manually (Actions → Docker image → Run workflow) and give it the release tag.
+
+To use it, replace `nitrox` with `darco2903/nitrox` in the commands below.
+
 ## Build
 
 ```sh
@@ -189,6 +203,10 @@ steamcmd only exists for x86, so the image is `amd64`-only.
 
 - **Apple Silicon (Docker Desktop):** works through emulation; keep `--platform linux/amd64`.
 - **ARM Linux servers:** install qemu/binfmt emulation (e.g. `docker run --privileged --rm tonistiigi/binfmt --install amd64`).
+
+## License
+
+This repo's files are under the MIT license (`LICENSE`). The image also contains the [Nitrox](https://github.com/SubnauticaNitrox/Nitrox) server, which is GPL-3.0. Its license and a link to the matching source are in the image at `/usr/share/licenses/nitrox/`. Subnautica itself isn't in the image.
 
 ## Troubleshooting
 
