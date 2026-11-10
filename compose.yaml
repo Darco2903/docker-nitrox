@@ -1,0 +1,33 @@
+name: nitrox-template
+services:
+  nitrox:
+    build: .
+    image: nitrox
+    platform: linux/amd64
+    container_name: nitrox
+    # The Nitrox server reads console commands from stdin
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    # Time to save the world after `docker stop` before Docker kills the server
+    stop_grace_period: 60s
+    environment:
+      STEAM_USER: ${STEAM_USER:?set STEAM_USER in .env}
+      UPDATE_ON_START: ${UPDATE_ON_START:-false}
+    ports:
+      - "11000:11000/udp"
+    volumes:
+      - steam:/home/steam/Steam/config
+      - game:/data/subnautica
+      - saves:/home/steam/.config/Nitrox
+
+volumes:
+  # Shared Steam login, one volume per account; create it with `docker volume create steam-<user>`
+  steam:
+    external: true
+    name: steam-${STEAM_USER}
+  # Fixed names so they match the plain `docker run` volumes from the README
+  game:
+    name: subnautica
+  saves:
+    name: nitrox-saves-template
